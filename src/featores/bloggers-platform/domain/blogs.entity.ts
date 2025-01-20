@@ -16,7 +16,7 @@ export class Blog {
   description: string;
   @Prop({ true: String, required: true })
   websiteUrl: string;
-  @Prop({ true: Boolean, required: true, default: true })
+  @Prop({ true: Boolean, required: true, default: false })
   isMembership: boolean;
   @Prop({ enum: DeletionStatus, default: DeletionStatus.NotDeleted })
   deletionStatus: DeletionStatus;

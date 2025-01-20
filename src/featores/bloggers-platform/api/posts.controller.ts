@@ -51,7 +51,7 @@ export class PostsController {
     const postId = await this.postsService.createPost(body);
     return this.postsQueryRepository.getByIdOrNotFoundFail(postId);
   }
-
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Put(':id')
   async updatePost(
     @Param('id') postId: string,
