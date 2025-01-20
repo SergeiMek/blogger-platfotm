@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserAccountsModule } from './featores/user-accounts/user-accounts.module';
 import { BlogAccountsModule } from './featores/bloggers-platform/bloggers-platform.module';
+import { AllDeleteController } from './featores/testing/testing.controller';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { BlogAccountsModule } from './featores/bloggers-platform/bloggers-platfo
     UserAccountsModule,
     BlogAccountsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AllDeleteController],
   providers: [AppService],
 })
 export class AppModule {}
