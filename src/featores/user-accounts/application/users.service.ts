@@ -23,6 +23,20 @@ export class UsersService {
   async createUser(dto: CreateUserDto): Promise<string> {
     const passwordSalt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(dto.password, passwordSalt);
+    const userLogin = await this.usersRepository.findByLoginOrEmail(dto.login);
+    const userEmail = await this.usersRepository.findByLoginOrEmail(dto.email);
+    if (userEmail) {
+      throw BadRequestDomainException.create(
+        'the user already exists',
+        'email',
+      );
+    }
+    if (userLogin) {
+      throw BadRequestDomainException.create(
+        'the user already exists',
+        'login',
+      );
+    }
 
     const user = this.UserModel.createInstance({
       email: dto.email,

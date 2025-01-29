@@ -26,7 +26,7 @@ export class UsersQueryRepository {
     query: GetUsersQueryParams,
   ): Promise<PaginatedViewDto<UserViewDto[]>> {
     const filter: FilterQuery<User> = {
-      // deletionStatus: DeletionStatus.NotDeleted,
+      deletionStatus: DeletionStatus.NotDeleted,
     };
 
     if (query.searchEmailTerm || query.searchLoginTerm) {

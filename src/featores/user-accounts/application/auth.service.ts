@@ -100,12 +100,7 @@ export class AuthService {
     if (user.emailConfirmation.isConfirmed) {
       throw BadRequestDomainException.create('user is confirmed', 'email');
     }
-    if (user.emailConfirmation.expirationData < new Date()) {
-      throw BadRequestDomainException.create(
-        'the deadline has expired',
-        'email',
-      );
-    }
+
     const newConfirmationCode = uuidv4();
     try {
       await this.emailService.sendChangePasswordEmail(
