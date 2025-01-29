@@ -15,11 +15,25 @@ export class UserViewDto {
   static mapToView(user: UserDocument): UserViewDto {
     const dto = new UserViewDto();
 
-    dto.email = user.email;
-    dto.login = user.login;
+    dto.email = user.accountData.email;
+    dto.login = user.accountData.login;
     dto.id = user._id.toString();
     dto.createdAt = user.createdAt;
 
+    return dto;
+  }
+}
+
+export class MeViewDto {
+  email: string;
+  login: string;
+  userId: string;
+  static mapToView(user: UserDocument): MeViewDto {
+    const dto = new MeViewDto();
+
+    dto.email = user.accountData.email;
+    dto.login = user.accountData.login;
+    dto.userId = user._id.toString();
     return dto;
   }
 }

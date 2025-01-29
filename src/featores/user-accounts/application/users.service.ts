@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import bcrypt from 'bcrypt';
 import { User, UserModelType } from '../domain/user.entity';
 import { InjectModel } from '@nestjs/mongoose';
+import { v4 as uuidv4 } from 'uuid';
 import { UsersRepository } from '../infrastructure/users.repository';
+import { EmailService } from '../../notifications/email.service';
 
 @Injectable()
 export class UsersService {
@@ -11,13 +13,17 @@ export class UsersService {
     @InjectModel(User.name)
     private UserModel: UserModelType,
     private usersRepository: UsersRepository,
+    private emailService: EmailService,
   ) {}
 
-  async createUser(dto: CreateUserDto) {
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+  async createUser(dto: CreateUserDto): Promise<string> {
+    const passwordSalt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(dto.password, passwordSalt);
+
     const user = this.UserModel.createInstance({
       email: dto.email,
       login: dto.login,
+      passwordSalt: passwordSalt,
       passwordHash: passwordHash,
     });
     await this.usersRepository.save(user);
@@ -27,5 +33,28 @@ export class UsersService {
     const user = await this.usersRepository.findOrNotFoundFail(id);
     user.makeDeleted();
     await this.usersRepository.save(user);
+  }
+  async registerUser(dto: CreateUserDto): Promise<any> {
+    const findUserByLogin = await this.usersRepository.findByLoginOrEmail(
+      dto.login,
+    );
+    const findUserByEmail = await this.usersRepository.findByLoginOrEmail(
+      dto.email,
+    );
+    debugger;
+    if (findUserByLogin || findUserByEmail) {
+      throw new HttpException('Forbidden', HttpStatus.BAD_REQUEST);
+    }
+    const confirmCode = uuidv4();
+    const createdUserId = await this.createUser(dto);
+    const user = await this.usersRepository.findOrNotFoundFail(createdUserId);
+    user.setConfirmationCode(confirmCode);
+    await this.usersRepository.save(user);
+    try {
+      await this.emailService.sendRegistrationEmail(dto.email, confirmCode);
+    } catch {
+      await this.usersRepository.deleteUserCompletely(user._id.toString());
+      throw new HttpException('letter not sent', HttpStatus.BAD_REQUEST);
+    }
   }
 }
