@@ -12,7 +12,7 @@ import { EmailService } from './email.service';
         //secure: false, // true для 465, false для других портов
         auth: {
           user: 'gromoj956@mail.ru', // Ваш email
-          pass: 'Xp2tqpGWv6juG02qiLHh', // Ваш пароль
+          pass: '', // Ваш пароль
         },
       },
       defaults: {
