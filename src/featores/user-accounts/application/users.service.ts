@@ -6,6 +6,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersRepository } from '../infrastructure/users.repository';
 import { EmailService } from '../../notifications/email.service';
+import {
+  BadRequestDomainException,
+  UnauthorizedDomainException,
+} from '../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class UsersService {
@@ -41,9 +45,17 @@ export class UsersService {
     const findUserByEmail = await this.usersRepository.findByLoginOrEmail(
       dto.email,
     );
-    debugger;
-    if (findUserByLogin || findUserByEmail) {
-      throw new HttpException('Forbidden', HttpStatus.BAD_REQUEST);
+    if (findUserByEmail) {
+      throw BadRequestDomainException.create(
+        'the user already exists',
+        'email',
+      );
+    }
+    if (findUserByLogin) {
+      throw BadRequestDomainException.create(
+        'the user already exists',
+        'login',
+      );
     }
     const confirmCode = uuidv4();
     const createdUserId = await this.createUser(dto);

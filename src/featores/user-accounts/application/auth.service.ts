@@ -6,6 +6,7 @@ import { UserContextDto } from '../guards/dto/user-context.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { add } from 'date-fns';
 import { EmailService } from '../../notifications/email.service';
+import { BadRequestDomainException } from '../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class AuthService {
@@ -77,15 +78,15 @@ export class AuthService {
   async confirmEmail(code: string): Promise<void> {
     const user = await this.usersRepository.findUserByConfirmCode(code);
     if (!user) {
-      throw new HttpException('user non found', HttpStatus.BAD_REQUEST);
+      throw BadRequestDomainException.create('the user already exists', 'code');
     }
     if (user.emailConfirmation.isConfirmed) {
-      throw new HttpException('user is confirm', HttpStatus.BAD_REQUEST);
+      throw BadRequestDomainException.create('user is confirmed', 'code');
     }
     if (user.emailConfirmation.expirationData! < new Date()) {
-      throw new HttpException(
-        'user confirm date not valid',
-        HttpStatus.BAD_REQUEST,
+      throw BadRequestDomainException.create(
+        'the deadline has expired',
+        'code',
       );
     }
     user.updateConfirmationStatus();
@@ -94,10 +95,10 @@ export class AuthService {
   async resendConfirmationCode(email: string): Promise<void> {
     const user = await this.usersRepository.findByLoginOrEmail(email);
     if (!user) {
-      throw new HttpException('user non found', HttpStatus.BAD_REQUEST);
+      throw BadRequestDomainException.create('user not found', 'email');
     }
     if (user.emailConfirmation.isConfirmed) {
-      throw new HttpException('user is confirm', HttpStatus.BAD_REQUEST);
+      throw BadRequestDomainException.create('user is confirmed', 'email');
     }
     const newConfirmationCode = uuidv4();
     try {
@@ -106,7 +107,7 @@ export class AuthService {
         newConfirmationCode,
       );
     } catch (error) {
-      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+      throw BadRequestDomainException.create(error, 'email');
     }
     user.updateConfirmationCode(newConfirmationCode);
     await this.usersRepository.save(user);
