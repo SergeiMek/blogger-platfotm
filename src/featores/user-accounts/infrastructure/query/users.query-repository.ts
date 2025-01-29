@@ -26,22 +26,21 @@ export class UsersQueryRepository {
     query: GetUsersQueryParams,
   ): Promise<PaginatedViewDto<UserViewDto[]>> {
     const filter: FilterQuery<User> = {
-      deletionStatus: DeletionStatus.NotDeleted,
+      // deletionStatus: DeletionStatus.NotDeleted,
     };
 
     if (query.searchEmailTerm || query.searchLoginTerm) {
       filter.$or = [];
-
-      if (query.searchEmailTerm) {
-        filter.$or.push({
-          email: { $regex: query.searchEmailTerm, $options: 'i' },
-        });
-      }
-      if (query.searchLoginTerm) {
-        filter.$or.push({
-          login: { $regex: query.searchLoginTerm, $options: 'i' },
-        });
-      }
+    }
+    if (query.searchEmailTerm) {
+      filter.$or!.push({
+        email: { $regex: query.searchEmailTerm, $options: 'i' },
+      });
+    }
+    if (query.searchLoginTerm) {
+      filter.$or!.push({
+        login: { $regex: query.searchLoginTerm, $options: 'i' },
+      });
     }
 
     const users = await this.UserModel.find(filter)
