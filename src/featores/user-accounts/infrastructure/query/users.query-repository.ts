@@ -26,28 +26,36 @@ export class UsersQueryRepository {
     query: GetUsersQueryParams,
   ): Promise<PaginatedViewDto<UserViewDto[]>> {
     const filter: FilterQuery<User> = {
-      deletionStatus: DeletionStatus.NotDeleted,
+      /// deletionStatus: DeletionStatus.NotDeleted,
     };
-
     if (query.searchEmailTerm || query.searchLoginTerm) {
       filter.$or = [];
-    }
+    } /*else {
+      filter = { deletionStatus: DeletionStatus.NotDeleted };
+    }*/
     if (query.searchEmailTerm) {
       filter.$or!.push({
-        email: { $regex: query.searchEmailTerm, $options: 'i' },
+        ['accountData.email']: { $regex: query.searchEmailTerm, $options: 'i' }, /// , $options: 'i'
       });
     }
     if (query.searchLoginTerm) {
       filter.$or!.push({
-        login: { $regex: query.searchLoginTerm, $options: 'i' },
+        ['accountData.login']: { $regex: query.searchLoginTerm, $options: 'i' },
       });
     }
-
-    const users = await this.UserModel.find(filter)
-      .sort({ [query.sortBy]: query.sortDirection })
+    debugger;
+    const users = await this.UserModel.find({
+      ...filter,
+      deletionStatus: DeletionStatus.NotDeleted,
+    })
+      .sort({
+        [query.sortBy === 'createdAt'
+          ? query.sortBy
+          : `accountData.${query.sortBy}`]: query.sortDirection,
+      })
       .skip(query.calculateSkip())
       .limit(query.pageSize);
-
+    debugger;
     const totalCount = await this.UserModel.countDocuments(filter);
     const items = users.map(UserViewDto.mapToView);
     return PaginatedViewDto.mapToView({

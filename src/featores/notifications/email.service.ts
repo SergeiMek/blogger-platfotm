@@ -14,7 +14,7 @@ export class EmailService {
   }
   async sendChangePasswordEmail(email: string, recoveryCode: string) {
     const registrationSubject = 'Password recovery';
-    const registrationMessage = `<h1>Password recovery</h1><p>To finish password recovery please follow the link below:<a href="https://somesite.com/password-recovery?recoveryCode=${recoveryCode}">recovery password</a></p>`;
+    const registrationMessage = `<h1>Password recovery</h1><p>To finish password recovery please follow the link below:<a href="https://some-front.com/confirm-registration?code=${recoveryCode}">recovery password</a></p>`;
     await this.mailerService.sendMail({
       to: email,
       subject: registrationSubject,

@@ -6,10 +6,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersRepository } from '../infrastructure/users.repository';
 import { EmailService } from '../../notifications/email.service';
-import {
-  BadRequestDomainException,
-  UnauthorizedDomainException,
-} from '../../../core/exceptions/domain-exceptions';
+import { BadRequestDomainException } from '../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class UsersService {

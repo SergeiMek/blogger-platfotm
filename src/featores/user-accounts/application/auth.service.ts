@@ -97,19 +97,27 @@ export class AuthService {
     if (!user) {
       throw BadRequestDomainException.create('user not found', 'email');
     }
+    debugger;
     if (user.emailConfirmation.isConfirmed) {
+      debugger;
       throw BadRequestDomainException.create('user is confirmed', 'email');
     }
 
     const newConfirmationCode = uuidv4();
-    try {
+    /* try {
       await this.emailService.sendChangePasswordEmail(
         user.accountData.email,
         newConfirmationCode,
       );
     } catch (error) {
       throw BadRequestDomainException.create(error, 'email');
-    }
+    }*/
+    this.emailService
+      .sendChangePasswordEmail(user.accountData.email, newConfirmationCode)
+      .catch((error) => {
+        throw BadRequestDomainException.create(error, 'email');
+      });
+
     user.updateConfirmationCode(newConfirmationCode);
     await this.usersRepository.save(user);
   }
