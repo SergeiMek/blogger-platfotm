@@ -1,7 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreatePostDomainDto } from './dto/create-blog.domain.dto';
 import { HydratedDocument, Model } from 'mongoose';
-import { UpdatePostDto } from '../dto/create-post.dto';
+import {
+  pushUserInLikesInfoDto,
+  updateLikesCount,
+  updateLikesStatusDto,
+  UpdatePostDto,
+} from '../dto/create-post.dto';
+import { BadRequestDomainException } from '../../../core/exceptions/domain-exceptions';
 
 export enum DeletionStatus {
   NotDeleted = 'not-deleted',
@@ -10,7 +16,7 @@ export enum DeletionStatus {
 
 @Schema()
 class User {
-  addedAt: Date;
+  addedAt: string;
   @Prop({ true: String, required: true })
   userId: string;
   @Prop({ true: String, required: true })
@@ -42,7 +48,7 @@ export class Post {
   blogId: string;
   @Prop({ type: String, required: true })
   blogName: string;
-  @Prop({ type: likesInfoSchema })
+  @Prop({ type: likesInfoSchema, default: new LikesInfo() })
   likesInfo: LikesInfo;
   @Prop({ enum: DeletionStatus, default: DeletionStatus.NotDeleted })
   deletionStatus: DeletionStatus;
@@ -64,6 +70,27 @@ export class Post {
     this.shortDescription = dto.shortDescription;
     this.content = dto.content;
     this.blogId = dto.blogId;
+  }
+  pushUserInLikesInfo(dto: pushUserInLikesInfoDto) {
+    this.likesInfo.users.push({
+      addedAt: new Date().toISOString(),
+      userId: dto.userId,
+      userLogin: dto.userLogin,
+      likeStatus: dto.likeStatus,
+    });
+  }
+  updateLikesCount(dto: updateLikesCount) {
+    this.likesInfo.likesCount = dto.likesCount;
+    this.likesInfo.dislikesCount = dto.dislikesCount;
+  }
+  updateLikesStatus(dto: updateLikesStatusDto) {
+    const updatedUser = this.likesInfo.users.find(
+      (f) => f.userId === dto.userId,
+    );
+    if (!updatedUser) {
+      throw BadRequestDomainException.create('server error', 'error');
+    }
+    updatedUser.likeStatus = dto.likeStatus;
   }
   makeDeleted() {
     if (this.deletionStatus !== DeletionStatus.NotDeleted) {

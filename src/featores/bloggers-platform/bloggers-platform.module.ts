@@ -15,6 +15,9 @@ import { CommentsController } from './api/comments.controller';
 import { CommentsService } from './application/comments.service';
 import { CommentsRepository } from './infrastructure/comments.repository';
 import { CommentsQueryRepository } from './infrastructure/query/comments.query-repository';
+import { UsersRepository } from '../user-accounts/infrastructure/users.repository';
+import { User, UserSchema } from '../user-accounts/domain/user.entity';
+import { BlogIsExistConstraint } from './validate/blogId-is-exist.decorator';
 
 @Module({
   imports: [
@@ -22,6 +25,7 @@ import { CommentsQueryRepository } from './infrastructure/query/comments.query-r
       { name: Blog.name, schema: BlogSchema },
       { name: Post.name, schema: PostSchema },
       { name: Comment.name, schema: CommentSchema },
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   controllers: [BlogsController, PostsController, CommentsController],
@@ -35,6 +39,8 @@ import { CommentsQueryRepository } from './infrastructure/query/comments.query-r
     CommentsService,
     CommentsRepository,
     CommentsQueryRepository,
+    UsersRepository,
+    BlogIsExistConstraint,
   ],
   exports: [MongooseModule],
 })

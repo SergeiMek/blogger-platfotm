@@ -11,8 +11,8 @@ import { EmailService } from './email.service';
         //port: 587, // Обычно 587 для TLS
         //secure: false, // true для 465, false для других портов
         auth: {
-          user: 'gromoj956@mail.ru', // Ваш email
-          pass: '', // Ваш пароль
+          user: process.env.EMAIL, // Ваш email
+          pass: process.env.PASSWORD, // Ваш пароль
         },
       },
       defaults: {

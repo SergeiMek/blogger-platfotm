@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from '../application/users.service';
@@ -22,6 +23,7 @@ import { UserContextDto } from '../guards/dto/user-context.dto';
 import { JwtAuthGuard } from '../guards/bearer/jwt-auth.guard';
 import { MeViewDto } from './view-dto/users.view-dto';
 import { AuthQueryRepository } from '../infrastructure/query/auth.query-repository';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -39,11 +41,20 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
-  login(
+  async login(
     /*@Request() req: any*/
     @ExtractUserFromRequest() user: UserContextDto,
-  ): Promise<{ accessToken: string }> {
-    return this.authService.login(user.id);
+    @Res() response: Response,
+  ): Promise<void> {
+    const access_token = await this.authService.login(user.id);
+    response
+      .cookie('refreshToken', access_token, {
+        secure: true,
+        httpOnly: true,
+        maxAge: 86400000,
+      })
+      .send(access_token);
+    // return access_token;
   }
 
   @Get('me')

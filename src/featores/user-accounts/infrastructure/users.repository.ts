@@ -6,6 +6,7 @@ import {
   UserDocument,
   UserModelType,
 } from '../domain/user.entity';
+import { NotFoundDomainException } from '../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class UsersRepository {
@@ -34,7 +35,7 @@ export class UsersRepository {
   async findOrNotFoundFail(id: string): Promise<UserDocument> {
     const user = await this.findById(id);
     if (!user) {
-      throw new NotFoundException('user not found');
+      throw NotFoundDomainException.create('user not found', 'userId');
     }
     return user;
   }

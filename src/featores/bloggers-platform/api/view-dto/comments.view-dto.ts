@@ -1,11 +1,5 @@
 import { CommentDocument } from '../../domain/comments.entity';
 
-/*class usersForLikes {
-  addedAt: Date;
-  userId: string;
-  login: string;
-}*/
-
 export class CommentViewDto {
   id: string;
   content: string;
@@ -19,7 +13,10 @@ export class CommentViewDto {
     dislikesCount: number;
     myStatus: string;
   };
-  static mapToView(comment: CommentDocument): CommentViewDto {
+  static mapToView(
+    comment: CommentDocument,
+    likeStatus?: string,
+  ): CommentViewDto {
     const dto = new CommentViewDto();
     debugger;
     dto.id = comment._id.toString();
@@ -30,9 +27,9 @@ export class CommentViewDto {
     };
     dto.createdAt = comment.createdAt;
     dto.likesInfo = {
-      likesCount: 0,
-      dislikesCount: 0,
-      myStatus: 'None',
+      likesCount: comment.likesInfo.likesCount,
+      dislikesCount: comment.likesInfo.dislikesCount,
+      myStatus: likeStatus || 'None',
     };
     return dto;
   }

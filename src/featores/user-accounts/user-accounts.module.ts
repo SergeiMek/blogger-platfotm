@@ -22,7 +22,7 @@ import { BasicStrategy } from './guards/basic/basic.strategy';
     PassportModule,
     JwtModule.register({
       secret: 'access-token-secret',
-      signOptions: { expiresIn: '180s' },
+      signOptions: { expiresIn: '6m' },
     }),
     NotificationsModule,
   ],
@@ -39,6 +39,6 @@ import { BasicStrategy } from './guards/basic/basic.strategy';
     JwtStrategy,
     BasicStrategy,
   ],
-  exports: [MongooseModule, JwtStrategy],
+  exports: [MongooseModule, JwtStrategy, UsersRepository],
 })
 export class UserAccountsModule {}

@@ -7,6 +7,8 @@ import { Comment, CommentModelType } from '../../domain/comments.entity';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { GetCommentsQueryParams } from '../../api/input-dto/get-comment-query-params.input-dto';
 import { PostsRepository } from '../posts.repository';
+import { NotFoundDomainException } from '../../../../core/exceptions/domain-exceptions';
+import { CommentsRepository } from '../comments.repository';
 
 @Injectable()
 export class CommentsQueryRepository {
@@ -14,6 +16,7 @@ export class CommentsQueryRepository {
     @InjectModel(Comment.name)
     private CommentModel: CommentModelType,
     private postsRepository: PostsRepository,
+    private commentsRepository: CommentsRepository,
   ) {}
 
   async getByIdOrNotFoundFail(id: string): Promise<CommentViewDto> {
@@ -48,8 +51,19 @@ export class CommentsQueryRepository {
       .limit(query.pageSize);
 
     const totalCount = await this.CommentModel.countDocuments(filter);
+    const items: CommentViewDto[] = await Promise.all(
+      comment.map(async (comment) => {
+        let status;
+        if (userId) {
+          status = await this.commentsRepository.findUserLikeStatus(
+            comment._id.toString(),
+            userId,
+          );
+        }
+        return CommentViewDto.mapToView(comment, status);
+      }),
+    );
 
-    const items = comment.map(CommentViewDto.mapToView);
     return PaginatedViewDto.mapToView({
       items,
       totalCount,
@@ -57,17 +71,22 @@ export class CommentsQueryRepository {
       size: query.pageSize,
     });
   }
-  async findCommentById(id: string): Promise<CommentViewDto> {
+  async findCommentById(id: string, userId?: string): Promise<CommentViewDto> {
     if (!isValidObjectId(id)) {
-      throw new NotFoundException('comment not found');
+      throw NotFoundDomainException.create('comment not found', 'commentId');
     }
+    let likeStatus;
+    if (userId) {
+      likeStatus = await this.commentsRepository.findUserLikeStatus(id, userId);
+    }
+
     const comment = await this.CommentModel.findOne({
       _id: id,
       deletionStatus: DeletionStatus.NotDeleted,
     });
     if (!comment) {
-      throw new NotFoundException('comment not found');
+      throw NotFoundDomainException.create('comment not found', 'commentId');
     }
-    return CommentViewDto.mapToView(comment);
+    return CommentViewDto.mapToView(comment, likeStatus);
   }
 }

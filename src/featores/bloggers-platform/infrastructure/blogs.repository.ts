@@ -37,4 +37,20 @@ export class BlogsRepository {
   async save(user: BlogDocument) {
     await user.save();
   }
+  async findBlogOfValidation(id: string): Promise<boolean> {
+    debugger;
+    if (!isValidObjectId(id)) {
+      return false;
+    }
+    const blog = await this.UserModel.findOne({
+      _id: id,
+      deletionStatus: { $ne: DeletionStatus.PermanentDeleted },
+    });
+
+    if (!blog) {
+      return false;
+    }
+
+    return true;
+  }
 }

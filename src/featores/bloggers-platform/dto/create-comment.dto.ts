@@ -9,3 +9,9 @@ export class UpdateCommentDto {
   commentId: string;
   content: string;
 }
+
+export class UpdateLikeStatusDto {
+  userId: string;
+  likeStatus: string;
+  commentId: string;
+}

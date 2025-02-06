@@ -1,7 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
 
-import { CreateCommentDomainDto } from './dto/create-comment.domain.dto';
+import {
+  CreateCommentDomainDto,
+  UpdateCommentDto,
+} from './dto/create-comment.domain.dto';
 
 export enum DeletionStatus {
   NotDeleted = 'not-deleted',
@@ -13,7 +16,7 @@ class User {
   @Prop({ true: String, required: true })
   userId: string;
   @Prop({ true: String, required: true })
-  userLogin: string;
+  likeStatus: string;
 }
 const UserSchema = SchemaFactory.createForClass(User);
 
@@ -61,25 +64,25 @@ export class Comment {
     comment.content = dto.content;
     comment.postId = dto.postId;
     //comment.likesInfo = new LikesInfo();
-    comment.likesInfo.users.push({ userLogin: '122', userId: '4455' });
+    comment.likesInfo.users.push({
+      likeStatus: 'None',
+      userId: dto.userId,
+    });
     comment.commentatorInfo = {
       userId: dto.userId,
-      userLogin: '4434',
+      userLogin: dto.userLogin,
     };
     return comment as CommentDocument;
   }
-  /* update(dto: UpdatePostDto) {
-    this.title = dto.title;
-    this.shortDescription = dto.shortDescription;
+  update(dto: UpdateCommentDto) {
     this.content = dto.content;
-    this.blogId = dto.blogId;
   }
   makeDeleted() {
     if (this.deletionStatus !== DeletionStatus.NotDeleted) {
       throw new Error('Entity already deleted');
     }
     this.deletionStatus = DeletionStatus.PermanentDeleted;
-  }*/
+  }
 }
 export const CommentSchema = SchemaFactory.createForClass(Comment);
 CommentSchema.loadClass(Comment);
