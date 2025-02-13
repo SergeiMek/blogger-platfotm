@@ -11,7 +11,8 @@ export class DeviceViewDto {
 
     dto.ip = device.ip;
     dto.title = device.title;
-    dto.lastActiveDate = device.lastActiveDate.toString();
+    //dto.lastActiveDate = device.lastActiveDate.toString();
+    dto.lastActiveDate = new Date(device.lastActiveDate * 1000).toISOString();
     dto.deviceId = device.deviceId;
 
     return dto;
