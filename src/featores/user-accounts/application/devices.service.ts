@@ -51,13 +51,14 @@ export class DevicesService {
     deviceId: string,
     refreshToken: string,
   ): Promise<void> {
+    const findDevise = await this.findDeviceByDeviceId(deviceId);
+    if (!findDevise) {
+      // throw NotFoundDomainException.create('device not found');
+      throw UnauthorizedDomainException.create();
+    }
     const cookieRefreshTokenObj = await this.jwtService.verify(refreshToken);
     if (!cookieRefreshTokenObj) {
       throw UnauthorizedDomainException.create();
-    }
-    const findDevise = await this.findDeviceByDeviceId(deviceId);
-    if (!findDevise) {
-      throw NotFoundDomainException.create('device not found');
     }
     const deviceUserId = findDevise.userId;
     const cookieUserId = cookieRefreshTokenObj.userId;
