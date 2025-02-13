@@ -6,7 +6,13 @@ import { UserContextDto } from '../guards/dto/user-context.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { add } from 'date-fns';
 import { EmailService } from '../../notifications/email.service';
-import { BadRequestDomainException } from '../../../core/exceptions/domain-exceptions';
+import {
+  BadRequestDomainException,
+  UnauthorizedDomainException,
+} from '../../../core/exceptions/domain-exceptions';
+import { DevicesRepository } from '../infrastructure/devices.repository';
+import { loginDto } from '../dto/login.user.dto';
+import { DevicesService } from './devices.service';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +21,8 @@ export class AuthService {
     private jwtService: JwtService,
     private cryptoService: CryptoService,
     private emailService: EmailService,
+    private devisesRepository: DevicesRepository,
+    private devicesService: DevicesService,
   ) {}
   async validateUser(
     loginOrEmail: string,
@@ -38,11 +46,27 @@ export class AuthService {
     return { id: user.id.toString() };
   }
 
-  async login(userId: string) {
-    const accessToken = this.jwtService.sign({ id: userId } as UserContextDto);
+  async login(dto: loginDto, deviceId: string = uuidv4()) {
+    const accessToken = this.jwtService.sign(
+      { id: dto.userId, deviceId } as UserContextDto,
+      {
+        expiresIn: '10s',
+      },
+    );
+    const refreshToken = this.jwtService.sign(
+      { id: dto.userId, deviceId } as UserContextDto,
+      { expiresIn: '20s' },
+    );
 
+    const deviceDto = {
+      newRefreshToken: refreshToken,
+      ip: dto.ip,
+      userAgent: dto.userAgent,
+    };
+    await this.devicesService.createDevice(deviceDto);
     return {
       accessToken,
+      refreshToken,
     };
   }
   async sendPasswordRecoveryCode(email: string) {
@@ -120,5 +144,45 @@ export class AuthService {
 
     user.updateConfirmationCode(newConfirmationCode);
     await this.usersRepository.save(user);
+  }
+  async refreshToken(
+    ip: string,
+    token: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const cookieRefreshTokenObj = this.jwtService.verify(token);
+    debugger;
+    if (!cookieRefreshTokenObj) {
+      throw UnauthorizedDomainException.create();
+    }
+    const deviceId = cookieRefreshTokenObj.deviceId;
+    debugger;
+    const userId = cookieRefreshTokenObj.id;
+    debugger;
+    const newAccessToken = this.jwtService.sign(
+      { id: userId, deviceId } as UserContextDto,
+      {
+        expiresIn: '10s',
+      },
+    );
+    const newRefreshToken = this.jwtService.sign(
+      { id: userId, deviceId } as UserContextDto,
+      { expiresIn: '20s' },
+    );
+    const newRefreshTokenObj = this.jwtService.verify(newRefreshToken);
+    const newIssuedAt = newRefreshTokenObj.iat;
+    const device = await this.devisesRepository.findOrNotFoundFail(deviceId);
+    await device.updateDevise({ ip, newIssuedAt });
+    await this.devisesRepository.save(device);
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
+  }
+  async logout(token: string): Promise<void> {
+    const cookieRefreshTokenObj = this.jwtService.verify(token);
+    if (!cookieRefreshTokenObj) {
+      throw UnauthorizedDomainException.create();
+    }
+    await this.devisesRepository.deleteDevice(cookieRefreshTokenObj.deviceId);
   }
 }

@@ -43,7 +43,6 @@ export class UsersQueryRepository {
         ['accountData.login']: { $regex: query.searchLoginTerm, $options: 'i' },
       });
     }
-    debugger;
     const users = await this.UserModel.find({
       ...filter,
       deletionStatus: DeletionStatus.NotDeleted,
@@ -55,7 +54,6 @@ export class UsersQueryRepository {
       })
       .skip(query.calculateSkip())
       .limit(query.pageSize);
-    debugger;
     const totalCount = await this.UserModel.countDocuments(filter);
     const items = users.map(UserViewDto.mapToView);
     return PaginatedViewDto.mapToView({

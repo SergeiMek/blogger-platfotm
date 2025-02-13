@@ -73,11 +73,11 @@ export class UsersService {
     const user = await this.usersRepository.findOrNotFoundFail(createdUserId);
     user.setConfirmationCode(confirmCode);
     await this.usersRepository.save(user);
-    try {
+    /*  try {
       await this.emailService.sendRegistrationEmail(dto.email, confirmCode);
     } catch {
       await this.usersRepository.deleteUserCompletely(user._id.toString());
       throw new HttpException('letter not sent', HttpStatus.BAD_REQUEST);
-    }
+    }*/
   }
 }
