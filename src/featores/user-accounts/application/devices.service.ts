@@ -57,7 +57,8 @@ export class DevicesService {
     }
     const findDevise = await this.findDeviceByDeviceId(deviceId);
     if (!findDevise) {
-      throw NotFoundDomainException.create('device not found');
+      //throw NotFoundDomainException.create('device not found');
+      throw UnauthorizedDomainException.create();
     }
     const deviceUserId = findDevise.userId;
     const cookieUserId = cookieRefreshTokenObj.userId;

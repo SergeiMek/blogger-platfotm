@@ -30,7 +30,7 @@ export class DevicesRepository {
   }
 
   async findDeviceByDeviceId(deviceId: string): Promise<DeviceDocument | null> {
-    return this.DeviceModel.findOne({ deviceId });
+    return this.DeviceModel.findOne({ deviceId: deviceId });
   }
 
   async deleteAllOldDevices(currentDeviceId: string): Promise<boolean> {
