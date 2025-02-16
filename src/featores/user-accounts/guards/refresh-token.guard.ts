@@ -10,6 +10,7 @@ export class RefreshTokenGuard implements CanActivate {
     private jwtService: JwtService,
     private devicesService: DevicesService,
   ) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest<Request>();
     const cookieRefreshToken = request.cookies.refreshToken;
@@ -18,7 +19,6 @@ export class RefreshTokenGuard implements CanActivate {
     }
     try {
       const cookieRefreshTokenObj = this.jwtService.verify(cookieRefreshToken);
-      console.log(cookieRefreshTokenObj);
       const deviceId = cookieRefreshTokenObj.deviceId;
       const findDevise =
         await this.devicesService.findDeviceByDeviceId(deviceId);
@@ -31,7 +31,28 @@ export class RefreshTokenGuard implements CanActivate {
       }
       return true;
     } catch (error) {
-      throw UnauthorizedDomainException.create(error);
+      throw UnauthorizedDomainException.create();
     }
   }
+  /* const request: Request = context.switchToHttp().getRequest<Request>();
+    const cookieRefreshToken = request.cookies.refreshToken;
+    if (!cookieRefreshToken) {
+      throw UnauthorizedDomainException.create();
+    }
+    const cookieRefreshTokenObj =
+      await this.jwtService.verifyAsync(cookieRefreshToken);
+    if (!cookieRefreshTokenObj) {
+      throw UnauthorizedDomainException.create();
+    }
+    const deviceId = cookieRefreshTokenObj.deviceId;
+    const findDevise = await this.devicesService.findDeviceByDeviceId(deviceId);
+    const cookieRefreshTokenIat = cookieRefreshTokenObj.iat;
+    if (!findDevise) {
+      throw UnauthorizedDomainException.create();
+    }
+    if (cookieRefreshTokenIat !== findDevise.lastActiveDate) {
+      throw UnauthorizedDomainException.create();
+    }
+    return true;
+  }*/
 }

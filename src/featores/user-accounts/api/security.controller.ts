@@ -14,6 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 import { DeviceQueryRepository } from '../infrastructure/query/device.query-repository';
 import { DeviceViewDto } from './view-dto/device.view-dto';
 import { DevicesService } from '../application/devices.service';
+import { UnauthorizedDomainException } from '../../../core/exceptions/domain-exceptions';
 
 //@UseGuards(RefreshTokenGuard)
 @Controller('security')
@@ -34,18 +35,20 @@ export class DeviceController {
       cookieRefreshTokeObj.id,
     );
   }
+
+  @Delete('devices/:deviceId')
   @UseGuards(RefreshTokenGuard)
-  @Delete(':devices/id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteDeviceById(
+  async deleteDeviceById(
     @Req() req: Request,
-    @Param('id') id: string,
+    @Param('deviceId') deviceId: string,
   ): Promise<void> {
     const refreshToken = req.cookies.refreshToken;
-    return this.deviseService.deleteDeviceById(id, refreshToken);
+    await this.deviseService.deleteDeviceById(deviceId, refreshToken);
   }
-  @UseGuards(RefreshTokenGuard)
+
   @Delete('devices')
+  @UseGuards(RefreshTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteAllOldDevices(@Req() req: Request): Promise<void> {
     const cookieRefreshToken = req.cookies.refreshToken;

@@ -24,11 +24,9 @@ export class DevicesService {
   ) {}
 
   async createDevice(dto: CreateDeviceTdo) {
-    debugger;
     const newRefreshTokenObj = await this.jwtService.verify(
       dto.newRefreshToken,
     );
-    debugger;
     if (!newRefreshTokenObj) {
       throw UnauthorizedDomainException.create();
     }
@@ -53,15 +51,15 @@ export class DevicesService {
   ): Promise<void> {
     const findDevise = await this.findDeviceByDeviceId(deviceId);
     if (!findDevise) {
-      // throw NotFoundDomainException.create('device not found');
-      throw UnauthorizedDomainException.create();
+      throw NotFoundDomainException.create('device not found');
+      //throw UnauthorizedDomainException.create();
     }
     const cookieRefreshTokenObj = await this.jwtService.verify(refreshToken);
     if (!cookieRefreshTokenObj) {
       throw UnauthorizedDomainException.create();
     }
     const deviceUserId = findDevise.userId;
-    const cookieUserId = cookieRefreshTokenObj.userId;
+    const cookieUserId = cookieRefreshTokenObj.id;
     if (deviceUserId !== cookieUserId) {
       throw ForbiddenDomainException.create('the device does not belong to yo');
     }
@@ -83,6 +81,9 @@ export class DevicesService {
   async deleteAllOldDevices(currentDeviceToken: string): Promise<void> {
     const cookieRefreshTokenObj =
       await this.jwtService.verify(currentDeviceToken);
+    if (!cookieRefreshTokenObj) {
+      throw UnauthorizedDomainException.create();
+    }
     await this.devicesRepository.deleteAllOldDevices(
       cookieRefreshTokenObj.deviceId,
     );
